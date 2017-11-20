@@ -114,10 +114,16 @@ public class AudioRecognizer {
             if (!isMatching) { 
                 // Adding keypoint to the list in its relative hash entry which has been computed before
             	
-                KeyPoint point = new KeyPoint(songId, c);
-                List<KeyPoint> listofkeys = new ArrayList<KeyPoint>();
-                listofkeys.add(point);
-                this.hashMapSongRepository.put(hashentry, listofkeys);
+            	KeyPoint point = new KeyPoint(songId, c);
+            	if (!this.hashMapSongRepository.containsKey(hashentry)) {            		
+            		List<KeyPoint> listofkeys = new ArrayList<KeyPoint>();
+            		listofkeys.add(point);                
+                	this.hashMapSongRepository.put(hashentry, listofkeys);
+                }else {
+                	List<KeyPoint> songlist = this.hashMapSongRepository.get(hashentry);
+                	songlist.add(point);
+                	this.hashMapSongRepository.put(hashentry, songlist); // Actualizar lista de keypoints
+                }
                 
             }
             // In the case of matching a song fragment
@@ -127,8 +133,8 @@ public class AudioRecognizer {
                         // For each keypoint:
                             // Compute the time offset (Math.abs(point.getTimestamp() - c))
                             
-            				List<KeyPoint> listn = this.hashMapSongRepository.get(hashentry);
-            				
+        				List<KeyPoint> listn = this.hashMapSongRepository.get(hashentry);
+            			if(listn != null) {
             				Iterator<KeyPoint> iterator = listn.iterator();
             				
             				while(iterator.hasNext()) {
@@ -170,6 +176,7 @@ public class AudioRecognizer {
                                 // (else) 
                                     // ...
             				}
+            			}
             }            
         } // End iterating over the chunks/ventanas of the magnitude spectrum
         // If we chose matching, we 
@@ -214,11 +221,29 @@ public class AudioRecognizer {
     // Method to find the songId with the most frequently/repeated time offset
     private void showBestMatching(Map<String, Map<Integer,Integer>> matchMap) {
     	
-    	for (Map.Entry<String, Map<Integer, Integer>> entry : matchMap.entrySet()) {
-    	    for(Map.Entry<Integer, Integer> entry2 : entry.getValue().entrySet()) {
+    	String bestsong = "";
+    	int bestmatch = 0;
+    	
+    	// Iterar el Hashmap anidado para comparar los offset.
+    	for (Map.Entry<String, Map<Integer, Integer>> entry : matchMap.entrySet()) { // Cada canción
+    		String idsong = entry.getKey(); // Tomamos el ID de la canción
+    		int biggestoffset = 0;
+    	    for(Map.Entry<Integer, Integer> entry2 : entry.getValue().entrySet()) { 
+    	    	
+    	    	// Comprobar cuál es el offset más grande de cada canción
+    	    	if(entry2.getValue() > biggestoffset) {
+    	    		biggestoffset = entry2.getValue();
+    	    	}
     	    	
     	    }
+    	    
+    	    // Comprobar que canción tiene mejor matching
+    	    if (biggestoffset > bestmatch) {
+    	    	bestmatch = biggestoffset;
+    	    	bestsong = idsong;
+    	    }
     	}
+    	
     	
         // Iterate over the songs in the hashtable used for matching (matchMap)
         // ...
@@ -227,6 +252,6 @@ public class AudioRecognizer {
             // the best overall result found till the current iteration
                
         // Print the songId string which represents the best matching     
-        System.out.println("Best song: ");
+        System.out.println("Best song: " + bestsong);
     }
 }

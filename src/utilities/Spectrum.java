@@ -38,7 +38,8 @@ public class Spectrum {
 
                     // ... 
                     // Initialize to avoid NullPointerExceptions
-                    resultsMag[i]= new double[AudioParams.chunkSize];                       
+                    resultsMag[i]= new double[AudioParams.chunkSize];   
+                    
                     // Save into resultsMag[i] the log magnitude for each frequency 
                     // within each chunk
                     for (int j = 0; j < AudioParams.chunkSize; j++) {
