@@ -11,6 +11,9 @@ import javax.sound.sampled.LineUnavailableException;
 * Example (1): java AudioFingerprinting -add "Wish you were here"
 * Example (2): java AudioFingerprinting -matching);
 * 
+* Autor: Ruth Rodríguez-Manzaneque López
+* Multimedia, Noviembre 2017.
+* 
 **********************************************************************/
 
 public class AudioFingerprinting {

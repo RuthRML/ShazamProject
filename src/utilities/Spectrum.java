@@ -29,14 +29,12 @@ public class Spectrum {
                     for(int j = 0; j<AudioParams.chunkSize; j++) {
                     	complex[j] = new Complex(audioTimeDomain[i*AudioParams.chunkSize + j], 0);
                     }
-                    
-                    // ...                                
+                                                    
                     // Perform the FFT for the current chunk (FFT.fft(complex))
                     // and save the results into resultsComplex[i]    
                     
                     resultsComplex[i] = FFT.fft(complex);                
 
-                    // ... 
                     // Initialize to avoid NullPointerExceptions
                     resultsMag[i]= new double[AudioParams.chunkSize];   
                     
