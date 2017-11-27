@@ -23,7 +23,7 @@ public class AudioRecognizer {
     // The main hashtable required in our interpretation of the algorithm to
     // store the song repository
     private Map<Long, List<KeyPoint>> hashMapSongRepository;
-    
+
     // Variable to stop/start the listening loop
     public boolean running;
 
@@ -105,16 +105,17 @@ public class AudioRecognizer {
         Map<String, Map<Integer,Integer>> matchMap = new HashMap<String, Map<Integer,Integer>>(); 
     
         // Iterate over all the chunks/ventanas from the magnitude spectrum
-        for (int c = 0; c < magnitudeSpectrum.length; c++) { 
-            // Compute the hash entry for the current chunk/ventana (magnitudeSpectrum[c])
+        for (int c = 0; c < magnitudeSpectrum.length; c++) {
         	
+            // Compute the hash entry for the current chunk/ventana (magnitudeSpectrum[c])        	
         	long hashentry = computeHashEntry(magnitudeSpectrum[c]);
         	
             // In the case of adding the song to the repository
-            if (!isMatching) { 
-                // Adding keypoint to the list in its relative hash entry which has been computed before
+            if (!isMatching) {
             	
+                // Adding keypoint to the list in its relative hash entry which has been computed before            	
             	KeyPoint point = new KeyPoint(songId, c);
+            	
             	if (!this.hashMapSongRepository.containsKey(hashentry)) {            		
             		List<KeyPoint> listofkeys = new ArrayList<KeyPoint>();
             		listofkeys.add(point);                
@@ -122,7 +123,7 @@ public class AudioRecognizer {
                 }else {
                 	List<KeyPoint> songlist = this.hashMapSongRepository.get(hashentry);
                 	songlist.add(point);
-                	this.hashMapSongRepository.put(hashentry, songlist); // Actualizar lista de keypoints
+                	//this.hashMapSongRepository.put(hashentry, songlist); // Actualizar lista de keypoints
                 }
                 
             }
@@ -133,50 +134,36 @@ public class AudioRecognizer {
                         // For each keypoint:
                             // Compute the time offset (Math.abs(point.getTimestamp() - c))
                             
-        				List<KeyPoint> listn = this.hashMapSongRepository.get(hashentry);
-            			if(listn != null) {
-            				Iterator<KeyPoint> iterator = listn.iterator();
-            				
-            				while(iterator.hasNext()) {
-            					KeyPoint current = iterator.next();
-            					int time = current.getTimestamp();
-            					String id = current.getSongId();
+    					List<KeyPoint> listn = this.hashMapSongRepository.get(hashentry);
+    					if(listn != null) {
+            				for(KeyPoint kp : listn) {
+            					int time = kp.getTimestamp();
+            					String id = kp.getSongId();
             					int offset = Math.abs(time - c);
             					
-            					// La canción no está en el map
-            					if(matchMap.get(id) == null) {
+            					// La cancion no existe en el matchMap
+            					if(!matchMap.containsKey(id)) {
             						Map<Integer, Integer> smap = new HashMap<Integer, Integer>();
             						smap.put(offset, 1);
-            						matchMap.put(id, smap);
-            					// La canción está en el map
+            						matchMap.put(id, smap); // Creando la cancion el matchMap
+            						
+            					// La canción está en el matchMap
             					}else{
+            						Map<Integer, Integer> offsetmap = matchMap.get(id);
             						// No está el offset actual
-            						if(matchMap.get(id).get(offset) == null) {
+            						if(!offsetmap.containsKey(offset)) {
             							// Crear la entrada para ese offset
-            							Map<Integer, Integer> smap_new = new HashMap<Integer, Integer>();
-            							smap_new.put(offset, 1);
-            							matchMap.put(id, smap_new);
-            							
+            							offsetmap.put(offset, 1);           							
         							// El offset actual está
-            						}else {
+            						}else{
             							// Incrementar el contador
-            							int cont = matchMap.get(id).get(offset);
-            							cont++;
-            							matchMap.get(id).put(offset, cont);
+            							Integer cont = offsetmap.get(offset);
+            							offsetmap.put(offset, cont + 1);
             						}
             					}
             				
-            	
-                            // Now, focus on the matchMap hashtable:
-                            // If songId (extracted from the current keypoint) has not been found yet in the matchMap add it
-                                // ...
-                            // (else) songId has been added in a past chunk
-                                // If this is the first time the computed offset appears for this particular songId
-                                    // ...
-                                // (else) 
-                                    // ...
             				}
-            			}
+    					}	
             }            
         } // End iterating over the chunks/ventanas of the magnitude spectrum
         // If we chose matching, we 
@@ -227,29 +214,23 @@ public class AudioRecognizer {
     	// Iterar el Hashmap anidado para comparar los offset.
     	for (Map.Entry<String, Map<Integer, Integer>> entry : matchMap.entrySet()) { // Cada canción
     		String idsong = entry.getKey(); // Tomamos el ID de la canción
-    		int biggestoffset = 0;
-    	    for(Map.Entry<Integer, Integer> entry2 : entry.getValue().entrySet()) { 
-    	    	
+    		Map<Integer, Integer> offsetmap = entry.getValue();
+    		int biggestoffset_of_a_song = 0;
+    	    for(Map.Entry<Integer, Integer> entry2 : offsetmap.entrySet()) { // Recorre map de offsets
+    	    	int current_cont = entry2.getValue();
     	    	// Comprobar cuál es el offset más grande de cada canción
-    	    	if(entry2.getValue() > biggestoffset) {
-    	    		biggestoffset = entry2.getValue();
+    	    	if(current_cont > biggestoffset_of_a_song) {
+    	    		biggestoffset_of_a_song = current_cont;
     	    	}
     	    	
     	    }
     	    
     	    // Comprobar que canción tiene mejor matching
-    	    if (biggestoffset > bestmatch) {
-    	    	bestmatch = biggestoffset;
+    	    if (biggestoffset_of_a_song > bestmatch) {
+    	    	bestmatch = biggestoffset_of_a_song;
     	    	bestsong = idsong;
     	    }
     	}
-    	
-    	
-        // Iterate over the songs in the hashtable used for matching (matchMap)
-        // ...
-            // (For each song) Iterate over the nested hashtable Map<offset,count>
-            // Get the biggest offset for the current song and update (if necessary)
-            // the best overall result found till the current iteration
                
         // Print the songId string which represents the best matching     
         System.out.println("Best song: " + bestsong);
